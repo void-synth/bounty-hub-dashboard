@@ -3,8 +3,9 @@ import { StatCard } from "@/components/StatCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
+import { StatusRefreshButton } from "@/components/StatusRefreshButton";
 import { mockIssues, mockRewards, mockFundingPool } from "@/lib/mockData";
-import { Wallet, TrendingUp, Award, FileCode, ArrowRight } from "lucide-react";
+import { Wallet, TrendingUp, Award, FileCode, ArrowRight, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Dashboard = () => {
@@ -18,11 +19,14 @@ const Dashboard = () => {
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground mt-2">
-            Track bounties, contributions, and rewards in one place
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground mt-2">
+              Track bounties, contributions, and rewards in one place
+            </p>
+          </div>
+          <StatusRefreshButton />
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -85,6 +89,15 @@ const Dashboard = () => {
                     <p className="text-sm text-muted-foreground">
                       {issue.repository}
                     </p>
+                    <a
+                      href={`https://github.com/${issue.repository}/issues/${issue.number}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:underline flex items-center gap-1"
+                    >
+                      View on GitHub
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
                   </div>
                   <div className="text-right ml-4">
                     <div className="text-lg font-bold text-success">

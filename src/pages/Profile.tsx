@@ -2,10 +2,22 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/AuthContext";
+import { Calendar, Award, DollarSign, User, CheckCircle2 } from "lucide-react";
 import { mockContributor } from "@/lib/mockData";
-import { Github, Calendar, Award, DollarSign, User } from "lucide-react";
 
 const Profile = () => {
+  const { user } = useAuth();
+  const displayUser = user || {
+    username: mockContributor.username,
+    email: `${mockContributor.username}@example.com`,
+    avatarUrl: mockContributor.avatarUrl,
+    githubConnected: false,
+    joinedAt: mockContributor.joinedAt,
+    role: "contributor" as const,
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -20,21 +32,28 @@ const Profile = () => {
           <Card className="lg:col-span-1">
             <CardHeader className="text-center">
               <Avatar className="h-24 w-24 mx-auto mb-4">
-                <AvatarImage src={mockContributor.avatarUrl} />
+                <AvatarImage src={displayUser.avatarUrl} />
                 <AvatarFallback><User className="h-12 w-12" /></AvatarFallback>
               </Avatar>
-              <CardTitle className="text-2xl">@{mockContributor.username}</CardTitle>
-              <CardDescription>Contributor</CardDescription>
+              <CardTitle className="text-2xl">@{displayUser.username}</CardTitle>
+              <CardDescription>
+                <Badge variant="secondary" className="mt-2">
+                  {displayUser.role}
+                </Badge>
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4" />
-                <span>Joined {new Date(mockContributor.joinedAt).toLocaleDateString()}</span>
+                <span>Joined {new Date(displayUser.joinedAt).toLocaleDateString()}</span>
               </div>
-              <Button className="w-full gap-2" variant="outline">
-                <Github className="h-4 w-4" />
-                Connect GitHub
+              <Button className="w-full gap-2" variant="outline" disabled>
+                <CheckCircle2 className="h-4 w-4 text-success" />
+                GitHub Connected
               </Button>
+              <p className="text-xs text-center text-muted-foreground">
+                GitHub authentication is required for BountyHub
+              </p>
             </CardContent>
           </Card>
 
@@ -95,8 +114,28 @@ const Profile = () => {
                   </div>
                   <div className="flex items-center justify-between p-3 rounded-lg border">
                     <span className="text-sm font-medium">GitHub Status</span>
-                    <span className="text-sm text-warning">Not Connected</span>
+                    {displayUser.githubConnected ? (
+                      <Badge variant="success" className="gap-1">
+                        <CheckCircle2 className="h-3 w-3" />
+                        Connected
+                      </Badge>
+                    ) : (
+                      <span className="text-sm text-warning">Not Connected</span>
+                    )}
                   </div>
+                  {displayUser.githubUsername && (
+                    <div className="flex items-center justify-between p-3 rounded-lg border">
+                      <span className="text-sm font-medium">GitHub Username</span>
+                      <a
+                        href={`https://github.com/${displayUser.githubUsername}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-primary hover:underline"
+                      >
+                        @{displayUser.githubUsername}
+                      </a>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

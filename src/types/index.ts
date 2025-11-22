@@ -52,3 +52,47 @@ export interface FundingPool {
   totalAssigned: number;
   totalPaid: number;
 }
+
+export type UserRole = "contributor" | "funder" | "admin";
+export type PaymentMethod = "bank" | "paypal" | "crypto" | "stripe";
+export type PaymentStatus = "pending" | "processing" | "completed" | "failed";
+
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  avatarUrl: string;
+  role: UserRole;
+  githubConnected: boolean;
+  githubUsername?: string;
+  joinedAt: string;
+}
+
+export interface FundingTransaction {
+  id: string;
+  userId: string;
+  amount: number;
+  createdAt: string;
+  status: "completed" | "pending" | "failed";
+}
+
+export interface Payment {
+  id: string;
+  rewardId: string;
+  amount: number;
+  method: PaymentMethod;
+  status: PaymentStatus;
+  initiatedAt: string;
+  completedAt?: string;
+  transactionId?: string;
+}
+
+export interface Repository {
+  id: string;
+  name: string;
+  fullName: string;
+  owner: string;
+  url: string;
+  isActive: boolean;
+  lastSyncedAt?: string;
+}

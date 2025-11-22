@@ -61,16 +61,45 @@ const Bounties = () => {
                     <div className="text-3xl font-bold text-success mb-2">
                       ${issue.bountyAmount}
                     </div>
-                    <Button className="gap-2" disabled={issue.status !== "open"}>
-                      {issue.status === "open" ? (
-                        <>
-                          View Issue
-                          <ExternalLink className="h-4 w-4" />
-                        </>
-                      ) : (
-                        "Assigned"
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        className="gap-2"
+                        disabled={issue.status !== "open"}
+                        asChild
+                      >
+                        <a
+                          href={`https://github.com/${issue.repository}/issues/${issue.number}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {issue.status === "open" ? (
+                            <>
+                              View Issue
+                              <ExternalLink className="h-4 w-4" />
+                            </>
+                          ) : (
+                            "Assigned"
+                          )}
+                        </a>
+                      </Button>
+                      {issue.status === "open" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2"
+                          asChild
+                        >
+                          <a
+                            href={`https://github.com/${issue.repository}/issues/${issue.number}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Submit PR
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </Button>
                       )}
-                    </Button>
+                    </div>
                   </div>
                 </div>
               </CardHeader>

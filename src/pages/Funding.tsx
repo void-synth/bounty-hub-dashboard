@@ -3,11 +3,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { mockFundingPool, mockIssues } from "@/lib/mockData";
 import { Wallet, TrendingUp, DollarSign, Award } from "lucide-react";
+import { AddFundsDialog } from "@/components/AddFundsDialog";
+import { AssignBountyDialog } from "@/components/AssignBountyDialog";
+import { GitHubSyncDialog } from "@/components/GitHubSyncDialog";
+import { useState } from "react";
 
 const Funding = () => {
+  const [refreshKey, setRefreshKey] = useState(0);
   const assignedPercent = (mockFundingPool.totalAssigned / mockFundingPool.totalFunding) * 100;
   const paidPercent = (mockFundingPool.totalPaid / mockFundingPool.totalFunding) * 100;
   const availablePercent = 100 - assignedPercent;
+
+  const handleRefresh = () => {
+    setRefreshKey((prev) => prev + 1);
+  };
 
   const bountiesByRepo = mockIssues.reduce((acc, issue) => {
     if (!acc[issue.repository]) {
@@ -24,11 +33,18 @@ const Funding = () => {
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight">Funding Pool</h1>
-          <p className="text-muted-foreground mt-2">
-            Overview of bounty funding and distribution
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold tracking-tight">Funding Pool</h1>
+            <p className="text-muted-foreground mt-2">
+              Overview of bounty funding and distribution
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <GitHubSyncDialog />
+            <AssignBountyDialog onSuccess={handleRefresh} />
+            <AddFundsDialog onSuccess={handleRefresh} />
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

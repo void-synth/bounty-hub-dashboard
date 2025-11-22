@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { mockIssues, mockPullRequests, mockContributor } from "@/lib/mockData";
-import { GitPullRequest, Award } from "lucide-react";
+import { GitPullRequest, Award, ExternalLink } from "lucide-react";
 
 const Contributions = () => {
   const myIssues = mockIssues.filter(issue => issue.assignedTo === mockContributor.username);
@@ -91,8 +91,18 @@ const Contributions = () => {
                     <div className="text-lg font-bold text-success mb-2">
                       ${issue.bountyAmount}
                     </div>
-                    <Button size="sm" variant="outline">
-                      View Details
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      asChild
+                    >
+                      <a
+                        href={`https://github.com/${issue.repository}/issues/${issue.number}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        View on GitHub
+                      </a>
                     </Button>
                   </div>
                 </div>
@@ -131,17 +141,32 @@ const Contributions = () => {
                       {pr.repository} • Linked to issue #{issue?.number}
                     </p>
                   </div>
-                  <div className="text-right ml-4">
+                  <div className="text-right ml-4 space-y-2">
                     {pr.status === "merged" && issue && (
                       <div className="text-lg font-bold text-success">
                         ${issue.bountyAmount}
                       </div>
                     )}
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="text-sm text-muted-foreground">
                       {pr.mergedAt
                         ? `Merged ${new Date(pr.mergedAt).toLocaleDateString()}`
                         : `Created ${new Date(pr.createdAt).toLocaleDateString()}`}
                     </p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-2"
+                      asChild
+                    >
+                      <a
+                        href={`https://github.com/${pr.repository}/pull/${pr.number}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        View PR
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </Button>
                   </div>
                 </div>
               );

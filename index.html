@@ -2,6 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BountyHub - GitHub Bounty Rewards Dashboard</title>
     <meta name="description" content="Track, claim, and manage GitHub bounty rewards. Connect contributors with funding pools for open source development." />
@@ -15,6 +17,29 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@Lovable" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <script>
+      // Prevent flash of unstyled content (FOUC) for dark mode
+      (function() {
+        try {
+          const stored = localStorage.getItem('theme');
+          let theme = stored;
+          
+          // If no stored theme, use system preference
+          if (!theme || theme === 'system') {
+            theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          
+          if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {
+          // Fallback to light mode if localStorage is not available
+          console.warn('Theme initialization failed:', e);
+        }
+      })();
+    </script>
   </head>
 
   <body>

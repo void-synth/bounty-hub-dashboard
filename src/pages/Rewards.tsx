@@ -6,10 +6,14 @@ import { mockRewards, mockIssues } from "@/lib/mockData";
 import { Award, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { PaymentMethodDialog } from "@/components/PaymentMethodDialog";
+import { PaymentHistory } from "@/components/PaymentHistory";
 
 const Rewards = () => {
   const { toast } = useToast();
   const [claimingId, setClaimingId] = useState<string | null>(null);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [selectedReward, setSelectedReward] = useState<{ id: string; amount: number } | null>(null);
 
   const eligibleRewards = mockRewards.filter(r => r.status === "eligible");
   const pendingRewards = mockRewards.filter(r => r.status === "pending");
@@ -19,14 +23,22 @@ const Rewards = () => {
   const totalPaid = paidRewards.reduce((sum, r) => sum + r.amount, 0);
 
   const handleClaim = (rewardId: string, amount: number) => {
-    setClaimingId(rewardId);
-    setTimeout(() => {
-      toast({
-        title: "Reward Claimed!",
-        description: `Successfully initiated payment of $${amount}. You'll receive the funds shortly.`,
-      });
-      setClaimingId(null);
-    }, 1000);
+    setSelectedReward({ id: rewardId, amount });
+    setPaymentDialogOpen(true);
+  };
+
+  const handlePaymentSuccess = () => {
+    if (selectedReward) {
+      setClaimingId(selectedReward.id);
+      setTimeout(() => {
+        toast({
+          title: "Payment initiated!",
+          description: `Your reward of $${selectedReward.amount} is being processed.`,
+        });
+        setClaimingId(null);
+        setSelectedReward(null);
+      }, 500);
+    }
   };
 
   const renderRewardCard = (reward: typeof mockRewards[0]) => {
@@ -73,6 +85,11 @@ const Rewards = () => {
               {claimingId === reward.id ? "Processing..." : "Claim Reward"}
               <Award className="h-4 w-4" />
             </Button>
+          )}
+          {reward.status === "paid" && reward.paidAt && (
+            <div className="text-xs text-muted-foreground mt-2">
+              Payment completed
+            </div>
           )}
         </div>
       </div>
@@ -183,6 +200,18 @@ const Rewards = () => {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        <PaymentHistory />
+
+        {selectedReward && (
+          <PaymentMethodDialog
+            open={paymentDialogOpen}
+            onOpenChange={setPaymentDialogOpen}
+            amount={selectedReward.amount}
+            rewardId={selectedReward.id}
+            onSuccess={handlePaymentSuccess}
+          />
         )}
       </div>
     </DashboardLayout>

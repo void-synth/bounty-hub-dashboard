@@ -1,9 +1,19 @@
 import { ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Github, LayoutDashboard, FileCode, Award, Wallet, User } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Github, LayoutDashboard, FileCode, Award, Wallet, User, LogOut, Settings } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { mockContributor } from "@/lib/mockData";
+import { useAuth } from "@/contexts/AuthContext";
+import { GitHubSyncDialog } from "@/components/GitHubSyncDialog";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 
 interface DashboardLayoutProps {
@@ -20,6 +30,13 @@ const navItems = [
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const location = useLocation();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -55,16 +72,42 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             </nav>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" className="gap-2">
-              <Github className="h-4 w-4" />
-              <span className="hidden sm:inline">Connect GitHub</span>
-            </Button>
-            <Link to="/profile">
-              <Avatar className="h-8 w-8 cursor-pointer hover:ring-2 ring-primary transition-all">
-                <AvatarImage src={mockContributor.avatarUrl} />
-                <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
-              </Avatar>
-            </Link>
+            <GitHubSyncDialog />
+            <ThemeToggle />
+            {user && (
+              <Button variant="outline" size="sm" className="gap-2" disabled>
+                <Github className="h-4 w-4" />
+                <span className="hidden sm:inline">GitHub Connected</span>
+              </Button>
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Avatar className="h-8 w-8 cursor-pointer hover:ring-2 ring-primary transition-all">
+                  <AvatarImage src={user?.avatarUrl} />
+                  <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium">@{user?.username}</p>
+                    <p className="text-xs text-muted-foreground">{user?.email}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/profile" className="cursor-pointer">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Profile Settings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>

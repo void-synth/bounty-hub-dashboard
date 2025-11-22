@@ -5,6 +5,7 @@ import { mockFundingPool, mockIssues } from "@/lib/mockData";
 import { Wallet, TrendingUp, DollarSign, Award } from "lucide-react";
 import { AddFundsDialog } from "@/components/AddFundsDialog";
 import { AssignBountyDialog } from "@/components/AssignBountyDialog";
+import { CreateBountyDialog } from "@/components/CreateBountyDialog";
 import { GitHubSyncDialog } from "@/components/GitHubSyncDialog";
 import { useState } from "react";
 
@@ -42,6 +43,7 @@ const Funding = () => {
           </div>
           <div className="flex items-center gap-3">
             <GitHubSyncDialog />
+            <CreateBountyDialog onSuccess={handleRefresh} />
             <AssignBountyDialog onSuccess={handleRefresh} />
             <AddFundsDialog onSuccess={handleRefresh} />
           </div>

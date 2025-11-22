@@ -3,26 +3,36 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/StatusBadge";
+import { CreateBountyDialog } from "@/components/CreateBountyDialog";
 import { mockIssues } from "@/lib/mockData";
 import { Search, ExternalLink } from "lucide-react";
 import { useState } from "react";
 
 const Bounties = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const filteredIssues = mockIssues.filter(issue =>
     issue.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     issue.repository.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleBountyCreated = () => {
+    setRefreshKey((prev) => prev + 1);
+    // In real app, this would refresh the issues list from the API
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight">Bounties</h1>
-          <p className="text-muted-foreground mt-2">
-            Browse and claim available bounties
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold tracking-tight">Bounties</h1>
+            <p className="text-muted-foreground mt-2">
+              Browse and claim available bounties
+            </p>
+          </div>
+          <CreateBountyDialog onSuccess={handleBountyCreated} />
         </div>
 
         <div className="flex items-center gap-4">

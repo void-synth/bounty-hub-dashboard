@@ -60,6 +60,18 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## GitHub OAuth Setup
+
+This application requires GitHub OAuth for authentication. **See [GITHUB_OAUTH_SETUP.md](./GITHUB_OAUTH_SETUP.md) for detailed setup instructions.**
+
+Quick setup:
+1. Create a GitHub OAuth App at https://github.com/settings/developers
+2. Set callback URL to: `http://localhost:8080/auth/callback` (dev) or your production URL
+3. Create a `.env` file with: `VITE_GITHUB_CLIENT_ID=your_client_id_here`
+4. Restart the dev server
+
+**Note**: You'll need a backend API to exchange the OAuth code for a token. See the setup guide for details.
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/a31a7b1b-7880-4759-a14b-fecb39c4399f) and click on Share -> Publish.

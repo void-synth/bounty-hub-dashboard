@@ -1,46 +1,49 @@
-import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Github, Award } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Github, Award, AlertCircle, ExternalLink } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
+const isSupabaseConfigured = (): boolean => {
+  const url = import.meta.env.VITE_SUPABASE_URL || '';
+  const key = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+  return !!url && !!key && url !== 'your_supabase_url_here' && key !== 'your_supabase_anon_key_here';
+};
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string>("");
+  const [isConfigured, setIsConfigured] = useState(true);
   const { login } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { toast } = useToast();
 
-  const from = (location.state as any)?.from?.pathname || "/";
+  useEffect(() => {
+    const configured = isSupabaseConfigured();
+    setIsConfigured(configured);
+    
+    if (!configured) {
+      console.warn("⚠️ Supabase not configured. Check .env file and restart dev server.");
+    }
+  }, []);
 
   const handleGitHubAuth = async () => {
+    if (!isConfigured) {
+      setError("Supabase is not configured. Please set up your .env file with VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.");
+      return;
+    }
+
     setIsLoading(true);
+    setError("");
+    
     try {
-      // Mock GitHub OAuth - in real app, this would redirect to GitHub OAuth
-      // For signup: if user doesn't exist, create account
-      // For login: if user exists, authenticate
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      
-      // In real app, this would be handled by the OAuth callback
-      // Here we simulate both signup and login with GitHub
-      await login("mock_github_token");
-      
-      toast({
-        title: "Successfully authenticated!",
-        description: "Welcome to BountyHub",
-      });
-      navigate(from, { replace: true });
-    } catch (error) {
-      toast({
-        title: "Authentication failed",
-        description: "Please try again or contact support if the issue persists",
-        variant: "destructive",
-      });
-    } finally {
+      // This will redirect to GitHub OAuth via Supabase
+      await login();
+      // Note: We won't reach here because redirect happens
+      // The callback will handle the rest
+    } catch (error: any) {
       setIsLoading(false);
+      setError(error.message || "Failed to initiate GitHub authentication. Please check your configuration.");
     }
   };
 
@@ -64,14 +67,50 @@ const Login = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          {!isConfigured && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="space-y-2">
+                <p className="font-medium">Supabase not configured</p>
+                <p className="text-sm">
+                  Create a <code className="px-1 py-0.5 bg-destructive/20 rounded">.env</code> file in the project root with:
+                </p>
+                <pre className="text-xs p-2 bg-muted rounded overflow-x-auto">
+                  VITE_SUPABASE_URL=your_supabase_url_here{'\n'}VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+                </pre>
+                <div className="flex items-center gap-2 text-sm mt-2">
+                  <a
+                    href="https://supabase.com/dashboard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline flex items-center gap-1"
+                  >
+                    Get credentials from Supabase
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
+                <p className="text-xs mt-2">
+                  See <code className="px-1 py-0.5 bg-destructive/20 rounded">SUPABASE_SETUP.md</code> for detailed instructions.
+                </p>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {error && isConfigured && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="whitespace-pre-line">{error}</AlertDescription>
+            </Alert>
+          )}
+
           <Button
             onClick={handleGitHubAuth}
-            disabled={isLoading}
+            disabled={isLoading || !isConfigured}
             className="w-full gap-2"
             size="lg"
           >
             <Github className="h-5 w-5" />
-            {isLoading ? "Connecting to GitHub..." : "Continue with GitHub"}
+            {isLoading ? "Redirecting to GitHub..." : "Continue with GitHub"}
           </Button>
 
           <div className="rounded-lg border p-4 bg-muted/50">
@@ -93,4 +132,3 @@ const Login = () => {
 };
 
 export default Login;
-

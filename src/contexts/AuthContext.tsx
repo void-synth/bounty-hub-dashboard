@@ -1,27 +1,34 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { User } from "@/types";
-import { mockContributor } from "@/lib/mockData";
+import { supabase } from "@/lib/supabase";
+import type { Session, User as SupabaseUser } from "@supabase/supabase-js";
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (githubToken: string) => Promise<void>;
-  logout: () => void;
+  login: () => Promise<void>;
+  logout: () => Promise<void>;
   connectGitHub: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock user data - in real app, this would come from API
-const mockUser: User = {
-  id: mockContributor.id,
-  username: mockContributor.username,
-  email: `${mockContributor.username}@example.com`,
-  avatarUrl: mockContributor.avatarUrl,
-  role: "contributor",
-  githubConnected: false,
-  joinedAt: mockContributor.joinedAt,
+// Map Supabase user to our User type
+const mapSupabaseUserToAppUser = (supabaseUser: SupabaseUser, metadata?: any): User => {
+  const userMetadata = supabaseUser.user_metadata || {};
+  const appMetadata = supabaseUser.app_metadata || {};
+  
+  return {
+    id: supabaseUser.id,
+    username: userMetadata.user_name || userMetadata.preferred_username || userMetadata.name || supabaseUser.email?.split('@')[0] || 'user',
+    email: supabaseUser.email || '',
+    avatarUrl: userMetadata.avatar_url || userMetadata.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(supabaseUser.email || 'user')}`,
+    role: appMetadata.role || metadata?.role || "contributor",
+    githubConnected: !!userMetadata.provider || supabaseUser.app_metadata?.provider === 'github',
+    githubUsername: userMetadata.user_name || userMetadata.preferred_username || '',
+    joinedAt: supabaseUser.created_at || new Date().toISOString(),
+  };
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -29,47 +36,71 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in (mock - check localStorage)
-    const storedUser = localStorage.getItem("bountyhub_user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+    // Check initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser(mapSupabaseUserToAppUser(session.user, session.user.user_metadata));
+      }
+      setIsLoading(false);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser(mapSupabaseUserToAppUser(session.user, session.user.user_metadata));
+      } else {
+        setUser(null);
+      }
+      setIsLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const login = async (githubToken: string) => {
-    setIsLoading(true);
-    // Mock login/signup - in real app, this would call API
-    // If user exists: authenticate, if not: create account
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    
-    // GitHub authentication is required - always set as connected
-    const userToStore = { 
-      ...mockUser, 
-      githubConnected: true, 
-      githubUsername: mockUser.username 
-    };
-    
-    setUser(userToStore);
-    localStorage.setItem("bountyhub_user", JSON.stringify(userToStore));
-    setIsLoading(false);
+  const login = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          scopes: 'read:user user:email',
+        },
+      });
+
+      if (error) {
+        console.error("GitHub OAuth error:", error);
+        throw error;
+      }
+
+      // The redirect will happen automatically
+      // No need to manually redirect
+    } catch (error: any) {
+      console.error("GitHub OAuth error:", error);
+      throw error;
+    }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("bountyhub_user");
+  const logout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Logout error:", error);
+        throw error;
+      }
+      setUser(null);
+    } catch (error) {
+      console.error("Logout error:", error);
+      throw error;
+    }
   };
 
   const connectGitHub = async () => {
-    // Mock GitHub OAuth flow
-    // In real app, this would redirect to GitHub OAuth
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    
-    if (user) {
-      const updatedUser = { ...user, githubConnected: true, githubUsername: user.username };
-      setUser(updatedUser);
-      localStorage.setItem("bountyhub_user", JSON.stringify(updatedUser));
-    }
+    // Same as login for GitHub
+    await login();
   };
 
   return (
@@ -95,4 +126,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
